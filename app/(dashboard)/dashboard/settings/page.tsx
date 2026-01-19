@@ -11,6 +11,14 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { User, Key, Bell, Palette, CheckCircle, XCircle } from 'lucide-react';
 
+// Local storage keys
+const STORAGE_KEYS = {
+    walletAddress: 'polytrader_wallet_address',
+    apiKey: 'polytrader_api_key',
+    apiSecret: 'polytrader_api_secret',
+    passphrase: 'polytrader_passphrase',
+};
+
 export default function SettingsPage() {
     // Credentials state
     const [apiKey, setApiKey] = useState('');
@@ -23,7 +31,27 @@ export default function SettingsPage() {
         isConnected: boolean;
         walletAddress: string | null;
     } | null>(null);
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+
+    // Load from localStorage on mount
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setWalletAddress(localStorage.getItem(STORAGE_KEYS.walletAddress) || '');
+            setApiKey(localStorage.getItem(STORAGE_KEYS.apiKey) || '');
+            setApiSecret(localStorage.getItem(STORAGE_KEYS.apiSecret) || '');
+            setPassphrase(localStorage.getItem(STORAGE_KEYS.passphrase) || '');
+        }
+    }, []);
+
+    // Save to localStorage whenever values change
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(STORAGE_KEYS.walletAddress, walletAddress);
+            localStorage.setItem(STORAGE_KEYS.apiKey, apiKey);
+            localStorage.setItem(STORAGE_KEYS.apiSecret, apiSecret);
+            localStorage.setItem(STORAGE_KEYS.passphrase, passphrase);
+        }
+    }, [walletAddress, apiKey, apiSecret, passphrase]);
 
     // Fetch credentials status on mount
     useEffect(() => {
@@ -33,9 +61,6 @@ export default function SettingsPage() {
                 if (response.ok) {
                     const data = await response.json();
                     setCredentialsStatus(data);
-                    if (data.walletAddress) {
-                        setWalletAddress(data.walletAddress);
-                    }
                 }
             } catch (error) {
                 console.error('Failed to fetch credentials status:', error);
@@ -68,7 +93,8 @@ export default function SettingsPage() {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || 'Failed to save credentials');
+                // Still show error but values are saved in localStorage
+                throw new Error(data.error || 'Failed to save to server');
             }
 
             setMessage({ type: 'success', text: 'Credentials saved successfully!' });
@@ -77,18 +103,28 @@ export default function SettingsPage() {
                 isConnected: false,
                 walletAddress: walletAddress || null,
             });
-
-            // Clear sensitive fields after save
-            setApiKey('');
-            setApiSecret('');
-            setPassphrase('');
         } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : 'Failed to save credentials';
             setMessage({
-                type: 'error',
-                text: error instanceof Error ? error.message : 'Failed to save credentials'
+                type: 'info',
+                text: `⚠️ ${errorMsg}. Values saved locally in your browser.`
             });
         } finally {
             setSavingCredentials(false);
+        }
+    };
+
+    const handleClearLocal = () => {
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem(STORAGE_KEYS.walletAddress);
+            localStorage.removeItem(STORAGE_KEYS.apiKey);
+            localStorage.removeItem(STORAGE_KEYS.apiSecret);
+            localStorage.removeItem(STORAGE_KEYS.passphrase);
+            setWalletAddress('');
+            setApiKey('');
+            setApiSecret('');
+            setPassphrase('');
+            setMessage({ type: 'info', text: 'Local data cleared' });
         }
     };
 
@@ -138,14 +174,19 @@ export default function SettingsPage() {
                                 </Badge>
                             )}
                         </div>
-                        <CardDescription>Connect your Polymarket account for live trading</CardDescription>
+                        <CardDescription>
+                            Connect your Polymarket account for live trading.
+                            <span className="text-blue-500"> Values are saved locally in your browser.</span>
+                        </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {/* Message */}
                         {message && (
                             <div className={`p-3 rounded-lg text-sm ${message.type === 'success'
                                     ? 'bg-green-500/10 text-green-500'
-                                    : 'bg-red-500/10 text-red-500'
+                                    : message.type === 'error'
+                                        ? 'bg-red-500/10 text-red-500'
+                                        : 'bg-blue-500/10 text-blue-500'
                                 }`}>
                                 {message.text}
                             </div>
@@ -167,7 +208,7 @@ export default function SettingsPage() {
                                 type="password"
                                 value={apiKey}
                                 onChange={(e) => setApiKey(e.target.value)}
-                                placeholder={credentialsStatus?.hasCredentials ? '••••••••••••••••' : 'Enter your API key'}
+                                placeholder="Enter your API key"
                             />
                         </div>
                         <div className="space-y-2">
@@ -177,7 +218,7 @@ export default function SettingsPage() {
                                 type="password"
                                 value={apiSecret}
                                 onChange={(e) => setApiSecret(e.target.value)}
-                                placeholder={credentialsStatus?.hasCredentials ? '••••••••••••••••' : 'Enter your API secret'}
+                                placeholder="Enter your API secret"
                             />
                         </div>
                         <div className="space-y-2">
@@ -187,7 +228,7 @@ export default function SettingsPage() {
                                 type="password"
                                 value={passphrase}
                                 onChange={(e) => setPassphrase(e.target.value)}
-                                placeholder={credentialsStatus?.hasCredentials ? '••••••••••••••••' : 'Enter your passphrase'}
+                                placeholder="Enter your passphrase"
                             />
                         </div>
                         <div className="flex gap-2">
@@ -195,6 +236,9 @@ export default function SettingsPage() {
                                 {savingCredentials ? 'Saving...' : 'Save Credentials'}
                             </Button>
                             <Button variant="outline" disabled>Test Connection</Button>
+                            <Button variant="ghost" onClick={handleClearLocal} className="text-red-500">
+                                Clear Local
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>

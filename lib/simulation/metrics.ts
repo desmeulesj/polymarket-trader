@@ -1,5 +1,5 @@
 import prisma from '@/lib/db';
-import { TradingMode } from '@prisma/client';
+import { TradingMode } from '@/lib/types';
 
 export interface PerformanceMetrics {
     totalPnl: number;

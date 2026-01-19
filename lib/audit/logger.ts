@@ -1,5 +1,5 @@
 import prisma from '@/lib/db';
-import { AuditCategory } from '@prisma/client';
+import { AuditCategory } from '@/lib/types';
 
 export interface AuditLogEntry {
     userId: string;

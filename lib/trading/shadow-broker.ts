@@ -1,4 +1,4 @@
-import { TradingMode } from '@prisma/client';
+import { TradingMode } from '@/lib/types';
 import prisma from '@/lib/db';
 import { PolymarketClient, createClient } from '@/lib/polymarket/client';
 import { logAudit, AuditActions } from '@/lib/audit/logger';

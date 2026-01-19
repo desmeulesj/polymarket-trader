@@ -1,4 +1,4 @@
-import { OrderStatus, TradingMode, OrderSide, OrderType } from '@prisma/client';
+import { OrderStatus, TradingMode, OrderSide, OrderType } from '@/lib/types';
 import prisma from '@/lib/db';
 import { PolymarketClient, createClient } from '@/lib/polymarket/client';
 import { logOrderPlaced } from '@/lib/audit/logger';

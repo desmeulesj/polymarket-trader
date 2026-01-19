@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { TradingMode } from '@prisma/client';
+import { TradingMode } from '@/lib/types';
 import { createBroker } from '@/lib/trading';
 import { logAudit, AuditActions } from '@/lib/audit/logger';
 

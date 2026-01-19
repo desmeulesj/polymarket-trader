@@ -1,4 +1,4 @@
-import { TradingMode, OrderSide, OrderType, OrderStatus } from '@prisma/client';
+import { TradingMode, OrderSide, OrderType, OrderStatus } from '@/lib/types';
 
 // ============================================================================
 // Trading Types

@@ -1,4 +1,4 @@
-import { TradingMode } from '@prisma/client';
+import { TradingMode } from '@/lib/types';
 import { PaperBroker } from './paper-broker';
 import { LiveBroker } from './live-broker';
 import { ShadowBroker } from './shadow-broker';

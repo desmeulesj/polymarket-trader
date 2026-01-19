@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/db';
-import { TradingMode } from '@prisma/client';
+import { TradingMode } from '@/lib/types';
 import { createBroker } from '@/lib/trading';
 import { logStrategyRun } from '@/lib/audit/logger';
 

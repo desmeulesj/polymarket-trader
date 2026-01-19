@@ -1,0 +1,14 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron",
+      "schedule": "*/5 * * * *"
+    }
+  ],
+  "functions": {
+    "api/strategy/execute.py": {
+      "runtime": "python3.12",
+      "maxDuration": 60
+    }
+  }
+}

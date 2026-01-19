@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/polymarket/client';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
+import { logAudit, AuditActions } from '@/lib/audit/logger';
 
 const testCredentialsSchema = z.object({
     apiKey: z.string().min(1),
@@ -37,14 +38,37 @@ export async function POST(req: Request) {
             passphrase,
         });
 
-        // Try to fetch open orders to verify credentials
-        // This is a safe read-only operation that requires valid auth
         try {
             // We use getOpenOrders as a smoke test
             // If credentials are bad, this should throw or return error from CLOB
             await client.getOpenOrders();
+
+            // Log success
+            await logAudit({
+                userId: session.user.id,
+                action: AuditActions.CREDENTIALS_VERIFIED,
+                category: 'SETTINGS',
+                details: { success: true },
+            });
+
         } catch (apiError: any) {
             console.error('Polymarket API Error during test:', apiError);
+
+            const errorDetails = apiError?.details || { message: apiError?.message };
+
+            // Log failure to database so we can see it in Logs page
+            await logAudit({
+                userId: session.user.id,
+                action: 'credentials.verification_failed',
+                category: 'SETTINGS',
+                details: {
+                    error: errorDetails,
+                    apiKeyPrefix: apiKey.substring(0, 4) + '...',
+                    hasSecret: !!apiSecret,
+                    hasPassphrase: !!passphrase
+                },
+            });
+
             return NextResponse.json(
                 {
                     error: 'Connection failed',

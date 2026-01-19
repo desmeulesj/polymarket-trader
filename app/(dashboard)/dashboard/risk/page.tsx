@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Header } from '@/components/dashboard/header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,13 +11,22 @@ import { KillSwitch } from '@/components/risk/kill-switch';
 import { AlertTriangle, Shield } from 'lucide-react';
 
 export default function RiskPage() {
+    const [killSwitchActive, setKillSwitchActive] = useState(false);
+
+    const handleKillSwitchToggle = async (active: boolean) => {
+        setKillSwitchActive(active);
+    };
+
     return (
         <div className="flex flex-col min-h-screen">
             <Header title="Risk Management" />
 
             <div className="flex-1 p-6 space-y-6">
                 {/* Kill Switch */}
-                <KillSwitch />
+                <KillSwitch
+                    isActive={killSwitchActive}
+                    onToggle={handleKillSwitchToggle}
+                />
 
                 {/* Risk Limits */}
                 <Card>

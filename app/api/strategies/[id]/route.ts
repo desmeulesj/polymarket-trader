@@ -89,7 +89,7 @@ export async function PUT(
                     strategyId: id,
                     version: newVersion,
                     code,
-                    parameters: updateData.parameters || existing.parameters,
+                    parameters: (updateData.parameters || existing.parameters) as object,
                     changelog: body.changelog || `Version ${newVersion}`,
                 },
             });
@@ -99,7 +99,12 @@ export async function PUT(
         const strategy = await prisma.strategy.update({
             where: { id },
             data: {
-                ...updateData,
+                name: updateData.name,
+                description: updateData.description,
+                parameters: updateData.parameters as object | undefined,
+                marketIds: updateData.marketIds,
+                schedule: updateData.schedule,
+                isActive: updateData.isActive,
                 ...(code ? { code, version: newVersion } : {}),
             },
         });

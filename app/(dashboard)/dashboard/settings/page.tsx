@@ -141,9 +141,11 @@ export default function SettingsPage() {
             }
 
             setMessage({ type: 'success', text: '✅ Connection successful! Credentials are valid.' });
-        } catch (error) {
-            const errorMsg = error instanceof Error ? error.message : 'Connection test failed';
-            setMessage({ type: 'error', text: `❌ ${errorMsg}` });
+        } catch (error: any) {
+            console.error('Connection test error:', error);
+            // If we have a debug message in the error (from our API), show it
+            const msg = error.message;
+            setMessage({ type: 'error', text: `❌ ${msg}` });
         } finally {
             setSavingCredentials(false);
         }

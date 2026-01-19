@@ -57,10 +57,11 @@ export async function POST(req: Request) {
             const errorDetails = apiError?.details || { message: apiError?.message };
 
             // Log failure to database so we can see it in Logs page
+            // Using SYSTEM category to ensure it works even if SETTINGS is missing in DB enum
             await logAudit({
                 userId: session.user.id,
                 action: 'credentials.verification_failed',
-                category: 'SETTINGS',
+                category: 'SYSTEM',
                 details: {
                     error: errorDetails,
                     apiKeyPrefix: apiKey.substring(0, 4) + '...',
@@ -72,7 +73,8 @@ export async function POST(req: Request) {
             return NextResponse.json(
                 {
                     error: 'Connection failed',
-                    details: apiError?.message || 'Invalid API Credentials'
+                    details: apiError?.message || 'Invalid API Credentials',
+                    debug: errorDetails // Send detailed error to client for debugging
                 },
                 { status: 400 }
             );

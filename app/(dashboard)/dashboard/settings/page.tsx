@@ -114,6 +114,41 @@ export default function SettingsPage() {
         }
     };
 
+    const handleTestConnection = async () => {
+        if (!apiKey || !apiSecret || !passphrase) {
+            setMessage({ type: 'error', text: 'All credential fields are required for testing' });
+            return;
+        }
+
+        setSavingCredentials(true);
+        setMessage({ type: 'info', text: 'Testing connection to Polymarket...' });
+
+        try {
+            const response = await fetch('/api/credentials/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    apiKey,
+                    apiSecret,
+                    passphrase,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.details || data.error || 'Connection failed');
+            }
+
+            setMessage({ type: 'success', text: '✅ Connection successful! Credentials are valid.' });
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : 'Connection test failed';
+            setMessage({ type: 'error', text: `❌ ${errorMsg}` });
+        } finally {
+            setSavingCredentials(false);
+        }
+    };
+
     const handleClearLocal = () => {
         if (typeof window !== 'undefined') {
             localStorage.removeItem(STORAGE_KEYS.walletAddress);
@@ -183,10 +218,10 @@ export default function SettingsPage() {
                         {/* Message */}
                         {message && (
                             <div className={`p-3 rounded-lg text-sm ${message.type === 'success'
-                                    ? 'bg-green-500/10 text-green-500'
-                                    : message.type === 'error'
-                                        ? 'bg-red-500/10 text-red-500'
-                                        : 'bg-blue-500/10 text-blue-500'
+                                ? 'bg-green-500/10 text-green-500'
+                                : message.type === 'error'
+                                    ? 'bg-red-500/10 text-red-500'
+                                    : 'bg-blue-500/10 text-blue-500'
                                 }`}>
                                 {message.text}
                             </div>
@@ -235,7 +270,13 @@ export default function SettingsPage() {
                             <Button onClick={handleSaveCredentials} disabled={savingCredentials}>
                                 {savingCredentials ? 'Saving...' : 'Save Credentials'}
                             </Button>
-                            <Button variant="outline" disabled>Test Connection</Button>
+                            <Button
+                                variant="outline"
+                                onClick={handleTestConnection}
+                                disabled={savingCredentials || !apiKey || !apiSecret || !passphrase}
+                            >
+                                Test Connection
+                            </Button>
                             <Button variant="ghost" onClick={handleClearLocal} className="text-red-500">
                                 Clear Local
                             </Button>

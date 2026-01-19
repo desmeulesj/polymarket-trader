@@ -68,8 +68,9 @@ export async function POST(
 
             // Parse and execute strategy code
             // This is a simplified version - actual implementation would use Python
+            const strategyParams = (strategy.parameters as Record<string, unknown>) || {};
             const result = await executeStrategy(strategy.code, broker, {
-                ...strategy.parameters,
+                ...strategyParams,
                 ...runParameters,
                 marketIds: strategy.marketIds,
             });

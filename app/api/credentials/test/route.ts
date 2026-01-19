@@ -39,9 +39,9 @@ export async function POST(req: Request) {
         });
 
         try {
-            // We use getOpenOrders as a smoke test
-            // If credentials are bad, this should throw or return error from CLOB
-            await client.getOpenOrders();
+            // We use getTrades as a smoke test because /orders returns 405 (Method Not Allowed)
+            // getTrades requires valid L2 signature
+            await client.clob.getTrades();
 
             // Log success
             await logAudit({

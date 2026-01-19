@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
                 description,
                 code,
                 version: 1,
-                parameters: parameters || {},
+                parameters: (parameters || {}) as object,
                 marketIds: marketIds || [],
                 schedule,
                 isActive: isActive ?? false,
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
                 strategyId: strategy.id,
                 version: 1,
                 code,
-                parameters: parameters || {},
+                parameters: (parameters || {}) as object,
                 changelog: 'Initial version',
             },
         });

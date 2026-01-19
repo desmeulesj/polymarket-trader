@@ -1,9 +1,11 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
+export const dynamic = 'force-dynamic';
+
 export default async function DebugPage() {
     const session = await auth();
-    const headersList = headers();
+    const headersList = await headers();
     const envCheck = {
         hasAuthSecret: !!process.env.AUTH_SECRET,
         hasDatabaseUrl: !!process.env.DATABASE_URL,
@@ -32,7 +34,7 @@ export default async function DebugPage() {
                 <h2 className="text-xl font-semibold">Cookies Present</h2>
                 <pre className="bg-slate-950 p-4 rounded border overflow-auto">
                     {/* Listing cookie names only for security */}
-                    {headersList.get('cookie')?.split(';').map(c => c.split('=')[0].trim()).join('\n')}
+                    {headersList.get('cookie')?.split(';').map((c: string) => c.split('=')[0].trim()).join('\n')}
                 </pre>
             </div>
         </div>

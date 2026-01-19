@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -23,16 +24,17 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            const res = await fetch('/api/auth/callback/credentials', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
+            const result = await signIn('credentials', {
+                email,
+                password,
+                redirect: false,
             });
 
-            if (res.ok) {
-                router.push('/dashboard');
-            } else {
+            if (result?.error) {
                 setError('Invalid email or password');
+            } else if (result?.ok) {
+                router.push('/dashboard');
+                router.refresh();
             }
         } catch {
             setError('An error occurred. Please try again.');

@@ -104,8 +104,13 @@ export function generateL2Headers(
     const payload = timestamp + method.toUpperCase() + path + (body || '');
 
     // HMAC-SHA256 signature
+    // Secret is usually base64 encoded, so we verify and decode it if necessary
+    // However, Node crypto handles string keys as binary or utf8.
+    // Polymarket docs imply decoding base64 if provided as such.
+    const secretBuffer = Buffer.from(apiSecret, 'base64');
+
     const signature = crypto
-        .createHmac('sha256', apiSecret)
+        .createHmac('sha256', secretBuffer)
         .update(payload)
         .digest('base64');
 

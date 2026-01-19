@@ -110,7 +110,7 @@ export function generateL2Headers(
         .digest('base64');
 
     return {
-        'POLY-ADDRESS': apiKey,
+        'POLY-API-KEY': apiKey,
         'POLY-SIGNATURE': signature,
         'POLY-TIMESTAMP': timestamp,
         'POLY-PASSPHRASE': passphrase,

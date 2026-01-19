@@ -33,9 +33,9 @@ export async function POST(req: Request) {
 
         // Initialize client with provided credentials
         const client = createClient({
-            apiKey,
-            apiSecret,
-            passphrase,
+            apiKey: apiKey.trim(),
+            apiSecret: apiSecret.trim(),
+            passphrase: passphrase.trim(),
         });
 
         try {
@@ -55,6 +55,7 @@ export async function POST(req: Request) {
             console.error('Polymarket API Error during test:', apiError);
 
             const errorDetails = apiError?.details || { message: apiError?.message };
+            const status = apiError?.status || 500;
 
             // Log failure to database so we can see it in Logs page
             // Using SYSTEM category to ensure it works even if SETTINGS is missing in DB enum
@@ -66,7 +67,8 @@ export async function POST(req: Request) {
                     error: errorDetails,
                     apiKeyPrefix: apiKey.substring(0, 4) + '...',
                     hasSecret: !!apiSecret,
-                    hasPassphrase: !!passphrase
+                    hasPassphrase: !!passphrase,
+                    status: status
                 },
             });
 
@@ -74,7 +76,10 @@ export async function POST(req: Request) {
                 {
                     error: 'Connection failed',
                     details: apiError?.message || 'Invalid API Credentials',
-                    debug: errorDetails // Send detailed error to client for debugging
+                    debug: {
+                        ...errorDetails,
+                        status: status
+                    }
                 },
                 { status: 400 }
             );

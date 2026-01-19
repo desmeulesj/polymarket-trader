@@ -65,6 +65,7 @@ export class ClobApi {
 
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
         };
 
         // Add auth headers for authenticated endpoints

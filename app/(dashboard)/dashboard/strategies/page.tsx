@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Header } from '@/components/dashboard/header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,16 +14,48 @@ import {
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 
-// Mock data
-const mockStrategies = [
-    { id: '1', name: 'Momentum Strategy', status: 'running', pnl: 234.50, trades: 12, version: 3 },
-    { id: '2', name: 'Market Maker', status: 'running', pnl: -45.20, trades: 48, version: 1 },
-    { id: '3', name: 'Arbitrage Bot', status: 'paused', pnl: 567.80, trades: 24, version: 2 },
-    { id: '4', name: 'Mean Reversion', status: 'stopped', pnl: 0, trades: 0, version: 1 },
-];
+interface Strategy {
+    id: string;
+    name: string;
+    description: string | null;
+    version: number;
+    isActive: boolean;
+    _count?: { runs: number };
+}
 
 export default function StrategiesPage() {
-    const [strategies] = useState(mockStrategies);
+    const [strategies, setStrategies] = useState<Strategy[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchStrategies = async () => {
+        try {
+            const response = await fetch('/api/strategies');
+            if (!response.ok) throw new Error('Failed to fetch strategies');
+            const data = await response.json();
+            setStrategies(data.strategies || []);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to load strategies');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchStrategies();
+    }, []);
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this strategy?')) return;
+
+        try {
+            const response = await fetch(`/api/strategies/${id}`, { method: 'DELETE' });
+            if (!response.ok) throw new Error('Failed to delete');
+            setStrategies(strategies.filter(s => s.id !== id));
+        } catch (err) {
+            alert('Failed to delete strategy');
+        }
+    };
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -44,49 +76,50 @@ export default function StrategiesPage() {
                     </Link>
                 </div>
 
-                {/* Strategies List */}
-                <div className="space-y-3">
-                    {strategies.map((strategy) => (
-                        <Card key={strategy.id}>
-                            <CardContent className="flex items-center justify-between p-4">
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${strategy.status === 'running' ? 'bg-green-500/10 text-green-500' :
-                                            strategy.status === 'paused' ? 'bg-yellow-500/10 text-yellow-500' :
-                                                'bg-muted text-muted-foreground'
-                                        }`}>
-                                        {strategy.status === 'running' ? <Play className="h-5 w-5" /> :
-                                            strategy.status === 'paused' ? <Pause className="h-5 w-5" /> :
-                                                <Play className="h-5 w-5" />}
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="font-medium">{strategy.name}</h3>
-                                            <Badge variant="outline" className="text-xs">v{strategy.version}</Badge>
-                                        </div>
-                                        <p className="text-sm text-muted-foreground">
-                                            {strategy.trades} trades • {strategy.status}
-                                        </p>
-                                    </div>
-                                </div>
+                {/* Loading State */}
+                {loading && (
+                    <div className="text-center py-12 text-muted-foreground">
+                        Loading strategies...
+                    </div>
+                )}
 
-                                <div className="flex items-center gap-6">
-                                    <div className="text-right">
-                                        <p className={`font-medium ${strategy.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                            {strategy.pnl >= 0 ? '+' : ''}${strategy.pnl.toFixed(2)}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">P&L</p>
+                {/* Error State */}
+                {error && (
+                    <div className="bg-red-500/10 text-red-500 p-4 rounded-lg">
+                        {error}
+                    </div>
+                )}
+
+                {/* Strategies List */}
+                {!loading && strategies.length > 0 && (
+                    <div className="space-y-3">
+                        {strategies.map((strategy) => (
+                            <Card key={strategy.id}>
+                                <CardContent className="flex items-center justify-between p-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${strategy.isActive
+                                                ? 'bg-green-500/10 text-green-500'
+                                                : 'bg-muted text-muted-foreground'
+                                            }`}>
+                                            {strategy.isActive ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="font-medium">{strategy.name}</h3>
+                                                <Badge variant="outline" className="text-xs">v{strategy.version}</Badge>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground">
+                                                {strategy._count?.runs || 0} runs • {strategy.isActive ? 'Active' : 'Inactive'}
+                                            </p>
+                                        </div>
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                        {strategy.status !== 'running' ? (
+                                        <Link href={`/dashboard/strategies/${strategy.id}`}>
                                             <Button size="sm" variant="outline">
-                                                <Play className="h-4 w-4" />
+                                                <Edit className="h-4 w-4" />
                                             </Button>
-                                        ) : (
-                                            <Button size="sm" variant="outline">
-                                                <Pause className="h-4 w-4" />
-                                            </Button>
-                                        )}
+                                        </Link>
 
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
@@ -95,24 +128,30 @@ export default function StrategiesPage() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                <DropdownMenuItem>
-                                                    <Edit className="h-4 w-4 mr-2" />
-                                                    Edit
+                                                <DropdownMenuItem asChild>
+                                                    <Link href={`/dashboard/strategies/${strategy.id}`}>
+                                                        <Edit className="h-4 w-4 mr-2" />
+                                                        Edit
+                                                    </Link>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem className="text-red-500">
+                                                <DropdownMenuItem
+                                                    className="text-red-500"
+                                                    onClick={() => handleDelete(strategy.id)}
+                                                >
                                                     <Trash2 className="h-4 w-4 mr-2" />
                                                     Delete
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                )}
 
-                {strategies.length === 0 && (
+                {/* Empty State */}
+                {!loading && strategies.length === 0 && !error && (
                     <Card className="p-12 text-center">
                         <CardHeader>
                             <CardTitle>No strategies yet</CardTitle>

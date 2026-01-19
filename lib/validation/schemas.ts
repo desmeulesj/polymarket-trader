@@ -47,7 +47,7 @@ export const strategySchema = z.object({
     code: z.string()
         .min(50, 'Strategy code must be at least 50 characters')
         .max(102400, 'Strategy code must be less than 100KB'),
-    parameters: z.record(z.unknown()).optional(),
+    parameters: z.record(z.string(), z.unknown()).optional(),
     marketIds: z.array(z.string()).optional(),
     schedule: z.string()
         .regex(/^(\*|[0-9,\-\/]+)\s+(\*|[0-9,\-\/]+)\s+(\*|[0-9,\-\/]+)\s+(\*|[0-9,\-\/]+)\s+(\*|[0-9,\-\/]+)$/, 'Invalid cron expression')
@@ -60,7 +60,7 @@ export const strategyUpdateSchema = strategySchema.partial();
 
 export const strategyRunSchema = z.object({
     mode: z.enum(['PAPER', 'LIVE', 'SHADOW']),
-    parameters: z.record(z.unknown()).optional(),
+    parameters: z.record(z.string(), z.unknown()).optional(),
 });
 
 // ============================================================================

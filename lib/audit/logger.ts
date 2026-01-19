@@ -21,7 +21,7 @@ export async function logAudit(entry: AuditLogEntry): Promise<void> {
                 userId: entry.userId,
                 action: entry.action,
                 category: entry.category,
-                details: entry.details,
+                details: entry.details as object,
                 ipAddress: entry.ipAddress,
                 userAgent: entry.userAgent,
             },

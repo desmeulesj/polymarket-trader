@@ -147,7 +147,7 @@ export function StrategyEditor({
     const handleBeforeMount: BeforeMount = (monaco) => {
         // Register Python language features
         monaco.languages.registerCompletionItemProvider('python', {
-            provideCompletionItems: (model, position) => {
+            provideCompletionItems: (model: Parameters<Parameters<typeof monaco.languages.registerCompletionItemProvider>[1]['provideCompletionItems']>[0], position: Parameters<Parameters<typeof monaco.languages.registerCompletionItemProvider>[1]['provideCompletionItems']>[1]) => {
                 const word = model.getWordUntilPosition(position);
                 const range = {
                     startLineNumber: position.lineNumber,
